@@ -25,6 +25,18 @@ let rot = 0;
 let srot = 0;
 let shiprow = 0;
 
+let attr_vTexCoord = null;
+let uniform_texture = null;
+let texture_data = [];
+let texture_size = 2;
+
+let sun_image = null;
+let earth_image = null;
+let moon_image = null;
+let sun_texture = null;
+let earth_texture = null;
+let moon_texture = null;
+
 
 // ----------------------------------------------
 // Camera parameters
@@ -89,6 +101,8 @@ function configure() {
     uniform_moon = webgl_context.getUniformLocation( program, "moon");
     attr_vertex = webgl_context.getAttribLocation( program, "vertex" );
     attr_normal = webgl_context.getAttribLocation( program, "normal" );
+    attr_vTexCoord = webgl_context.getAttribLocation( program, "vTexCoord" );
+
     uniform__color = webgl_context.getUniformLocation( program, "color" );
     uniform_view = webgl_context.getUniformLocation( program, "V" );
     uniform_perspective = webgl_context.getUniformLocation( program, "P" );
@@ -97,7 +111,10 @@ function configure() {
    
     uniform_eye = webgl_context.getUniformLocation(program, "eye");
 
+    uniform_texture = webgl_context.getUniformLocation(program, "texture");
+
     webgl_context.enable( webgl_context.DEPTH_TEST );
+    webgl_context.clear( webgl_context.COLOR_BUFFER_BIT | webgl_context.DEPTH_BUFFER_BIT );
    
 }
 
@@ -133,6 +150,110 @@ function createNormalData() {
     }
   
   }
+
+function createTextureData() {
+
+    let x = 0
+    let y = 0
+    let z = 0
+    let r = 0
+    let theta = 0
+    let phi = 0
+    let s = 0
+    let t = 0
+  
+    for (let i = 0; i < vertex_data.length; i++) {
+  
+      x = vertex_data[i][0]
+      y = vertex_data[i][1]
+      z = vertex_data[i][2]
+  
+      r = Math.sqrt( Math.pow( x, 2 ) + Math.pow( y, 2 ) + Math.pow( z, 2 ) );
+      phi = Math.acos( y/r );
+      theta = Math.atan2( z, x );
+  
+      s = -( (theta + Math.PI) / (2 * Math.PI) );
+      t = 1 - (phi / Math.PI );
+  
+      texture_data.push( vec2( s,t ) );
+      
+    }
+  
+  }
+
+function createTexture() {
+
+    sun_image = new Image();
+
+    sun_image.onload = () => { 
+
+      sun_texture = webgl_context.createTexture();
+      webgl_context.bindTexture( webgl_context.TEXTURE_2D, sun_texture );
+      webgl_context.pixelStorei( webgl_context.UNPACK_FLIP_Y_WEBGL, true );
+      webgl_context.texImage2D( webgl_context.TEXTURE_2D, 0, 
+                              webgl_context.RGB, webgl_context.RGB, 
+                              webgl_context.UNSIGNED_BYTE, sun_image );
+      webgl_context.generateMipmap( webgl_context.TEXTURE_2D );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MIN_FILTER,
+                                 webgl_context.NEAREST_MIPMAP_LINEAR );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MAG_FILTER, 
+                                 webgl_context.NEAREST );
+
+    }
+
+    sun_image.crossOrigin = "anonymous";
+    sun_image.src = "sun.jpg";
+
+
+    earth_image = new Image();
+
+    earth_image.onload = () => { 
+
+      earth_texture = webgl_context.createTexture();
+      webgl_context.bindTexture( webgl_context.TEXTURE_2D, earth_texture );
+      webgl_context.pixelStorei( webgl_context.UNPACK_FLIP_Y_WEBGL, true );
+      webgl_context.texImage2D( webgl_context.TEXTURE_2D, 0, 
+                              webgl_context.RGB, webgl_context.RGB, 
+                              webgl_context.UNSIGNED_BYTE, earth_image );
+      webgl_context.generateMipmap( webgl_context.TEXTURE_2D );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MIN_FILTER,
+                                 webgl_context.NEAREST_MIPMAP_LINEAR );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MAG_FILTER, 
+                                 webgl_context.NEAREST );
+
+    }
+
+    earth_image.crossOrigin = "anonymous";
+    console.log(url_map["earth"]);
+    earth_image.src = "earth.jpg";
+
+    moon_image = new Image();
+
+    moon_image.onload = () => { 
+
+      moon_texture = webgl_context.createTexture();
+      webgl_context.bindTexture( webgl_context.TEXTURE_2D, moon_texture );
+      webgl_context.pixelStorei( webgl_context.UNPACK_FLIP_Y_WEBGL, true );
+      webgl_context.texImage2D( webgl_context.TEXTURE_2D, 0, 
+                              webgl_context.RGB, webgl_context.RGB, 
+                              webgl_context.UNSIGNED_BYTE, moon_image );
+      webgl_context.generateMipmap( webgl_context.TEXTURE_2D );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MIN_FILTER,
+                                 webgl_context.NEAREST_MIPMAP_LINEAR );
+      webgl_context.texParameteri( webgl_context.TEXTURE_2D, 
+                                 webgl_context.TEXTURE_MAG_FILTER, 
+                                 webgl_context.NEAREST );
+
+    }
+
+    moon_image.crossOrigin = "anonymous";
+    moon_image.src = "moon.jpg";
+    }
 
 function allocateMemory() {
    
@@ -171,24 +292,39 @@ function draw() {
     srot = (srot + 0.0174533 * 2) % 360;
     orbit_speed = (orbit_speed + orbit_speed_crd) % 360;
 
+    // draw sun
     webgl_context.uniform2f(uniform_props, rot, 1);
     webgl_context.uniform3f( uniform_ship, 0.0, 0.0, 0.0);
     webgl_context.uniform1f( uniform_moon, 0.0);  
-    //moon = atan(tan(ship[1]) * cos(ship[2])) / 3.0
+    
+    webgl_context.activeTexture( webgl_context.TEXTURE0);
+    webgl_context.bindTexture( webgl_context.TEXTURE_2D, sun_texture );
+    webgl_context.uniform1i( uniform_texture, 0);
+    
     webgl_context.uniform4f( uniform__color, 0.0, 1.0, 0.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
+    // draw earth
     webgl_context.uniform2f(uniform_props, srot, 0.3); 
     webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
     webgl_context.uniform1f( uniform_moon, 0.0); 
-    //moon = atan(tan(ship[1]) * cos(ship[2])) / 3.0
+    
+    webgl_context.activeTexture( webgl_context.TEXTURE0 + 1);
+    webgl_context.bindTexture( webgl_context.TEXTURE_2D, earth_texture );
+    webgl_context.uniform1i( uniform_texture, 1);
+
     webgl_context.uniform4f( uniform__color, 0.0, 0.84, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
+    // draw moon
     webgl_context.uniform2f(uniform_props, srot, 0.3); 
     webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
     webgl_context.uniform1f( uniform_moon, radians(orbit_speed_crd)); 
-    //moon = orbit_speed
+    
+    webgl_context.activeTexture( webgl_context.TEXTURE0 + 2);
+    webgl_context.bindTexture( webgl_context.TEXTURE_2D, moon_texture );
+    webgl_context.uniform1i( uniform_texture, 2);
+
     webgl_context.uniform4f( uniform__color, 1.0, 1.0, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
    
@@ -196,6 +332,8 @@ function draw() {
 
 createVertexData();
 createNormalData();
+createTextureData();
+createTexture();
 configure();
 allocateMemory();
 setInterval(draw, 100);

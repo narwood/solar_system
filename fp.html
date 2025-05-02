@@ -60,6 +60,7 @@
   uniform vec4 light;
   uniform vec3 eye;
   varying vec3 N, L, E;
+  varying vec2 fTexCoord;
 
   // ---------------------------------
   // Todo: You complete the code
@@ -186,9 +187,12 @@
 
     uniform vec4 color; 
     varying vec3 N, L, E;
+    varying vec2 fTexCoord;
+    uniform sampler2D texture;
     
     void main() {
 
+        vec4 color = texture2D(texture, fTexCoord );
         vec3 H = normalize( L + E );
 
         vec4 diffuse = max( dot(L, N), 0.0 ) * color * kd;

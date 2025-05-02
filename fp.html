@@ -157,10 +157,11 @@
     vec3 v_n = (P * V * Model * normal).xyz;
 
     L = normalize(v_l - v_p);
-    E = -eye;
+    E = -v_p;
     N = normalize(v_n);
   
   }
+
 
 
 
@@ -170,6 +171,7 @@
 
     precision mediump float;
     precision lowp int;
+    uniform float shading_enabled;
 
     // ---------------------------------
     // Todo: You complete the code
@@ -201,8 +203,15 @@
             specular = vec4( 0.0, 0.0, 0.0, 1.0 );
         }
 
-        gl_FragColor = diffuse + ambient + specular;
+        if ( shading_enabled == 1.0 ) {
 
+            gl_FragColor = color;
+         
+         } else {
+         
+            gl_FragColor = diffuse + ambient + specular;
+         
+         }
     }
   
 </script>

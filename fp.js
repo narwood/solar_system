@@ -15,6 +15,8 @@ let uniform_ship = null;
 let uniform_moon = null;
 let uniform_light = null;
 let uniform_eye = null;
+let shading_enabled = null;
+let moon_angle = null;
 let vertex_data = [];
 let normal_data = [];
 let canvas = null;
@@ -23,6 +25,7 @@ let count = 2;
 let size = 3;
 let rot = 0;
 let srot = 0;
+let erot = 0;
 let shiprow = 0;
 
 
@@ -92,6 +95,8 @@ function configure() {
     uniform__color = webgl_context.getUniformLocation( program, "color" );
     uniform_view = webgl_context.getUniformLocation( program, "V" );
     uniform_perspective = webgl_context.getUniformLocation( program, "P" );
+    shading_enabled = webgl_context.getUniformLocation( program, "shading_enabled" );
+
  
     uniform_light = webgl_context.getUniformLocation(program, "light");
    
@@ -168,28 +173,31 @@ function draw() {
     webgl_context.uniformMatrix4fv( uniform_perspective, false, flatten( P ) );
 
     rot = (rot + 0.0174533) % 360;
-    srot = (srot + 0.0174533 * 2) % 360;
+    srot = (srot + 0.0872665) % 360;
+    erot = (erot + 0.174533) % 360;
     orbit_speed = (orbit_speed + orbit_speed_crd) % 360;
+    moon_angle = (moon_angle + 0.5) % 360;
 
-    webgl_context.uniform2f(uniform_props, rot, 1);
+    webgl_context.uniform2f(uniform_props, rot, 2.5);
+    webgl_context.uniform1f( uniform_moon, 0.0);
     webgl_context.uniform3f( uniform_ship, 0.0, 0.0, 0.0);
-    webgl_context.uniform1f( uniform_moon, 0.0);  
+    webgl_context.uniform1f( shading_enabled, 1.0);   
     //moon = atan(tan(ship[1]) * cos(ship[2])) / 3.0
     webgl_context.uniform4f( uniform__color, 0.0, 1.0, 0.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
-    webgl_context.uniform2f(uniform_props, srot, 0.3); 
-    webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
-    webgl_context.uniform1f( uniform_moon, 0.0); 
+    webgl_context.uniform2f(uniform_props, srot, 0.5); 
+    webgl_context.uniform1f( uniform_moon, 0.0);
+    webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd)); 
+    webgl_context.uniform1f( shading_enabled, 0.0); 
     //moon = atan(tan(ship[1]) * cos(ship[2])) / 3.0
     webgl_context.uniform4f( uniform__color, 0.0, 0.84, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
-    webgl_context.uniform2f(uniform_props, srot, 0.3); 
+    webgl_context.uniform2f(uniform_props, erot, 0.25); 
+    webgl_context.uniform1f(uniform_moon, radians(orbit_speed_crd));
     webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
-    webgl_context.uniform1f( uniform_moon, radians(orbit_speed_crd)); 
-    //moon = orbit_speed
-    webgl_context.uniform4f( uniform__color, 1.0, 1.0, 1.0, 1.0 );
+    webgl_context.uniform4f( uniform__color, 0.50, 0.50, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
    
 }

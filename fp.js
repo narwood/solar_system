@@ -271,6 +271,12 @@ function allocateMemory() {
     webgl_context.enableVertexAttribArray( attr_normal );
     webgl_context.bufferData( webgl_context.ARRAY_BUFFER, flatten(normal_data), webgl_context.STATIC_DRAW );
 
+    let texbuff_id = webgl_context.createBuffer();
+    
+    webgl_context.bindBuffer( webgl_context.ARRAY_BUFFER, texbuff_id );
+    webgl_context.vertexAttribPointer( attr_vTexCoord, texture_size, webgl_context.FLOAT, false, 0, 0 );
+    webgl_context.enableVertexAttribArray( attr_vTexCoord );
+    webgl_context.bufferData( webgl_context.ARRAY_BUFFER, flatten(texture_data), webgl_context.STATIC_DRAW );
 }
 
 function draw() {
@@ -301,7 +307,7 @@ function draw() {
     webgl_context.bindTexture( webgl_context.TEXTURE_2D, sun_texture );
     webgl_context.uniform1i( uniform_texture, 0);
     
-    webgl_context.uniform4f( uniform__color, 0.0, 1.0, 0.0, 1.0 );
+    // webgl_context.uniform4f( uniform__color, 0.0, 1.0, 0.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
     // draw earth

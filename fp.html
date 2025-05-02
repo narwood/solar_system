@@ -55,11 +55,14 @@
   precision mediump float;
   attribute vec4 vertex;
   attribute vec4 normal;
+  attribute vec2 vTexCoord;
+
   uniform mat4 V; 
   uniform mat4 P;
   uniform vec4 light;
   uniform vec3 eye;
   varying vec3 N, L, E;
+
   varying vec2 fTexCoord;
 
   // ---------------------------------
@@ -160,6 +163,8 @@
     L = normalize(v_l - v_p);
     E = -eye;
     N = normalize(v_n);
+
+    fTexCoord = vTexCoord;
   
   }
 

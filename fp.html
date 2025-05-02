@@ -1,0 +1,209 @@
+<html>
+<head>
+    <link rel="stylesheet" href="fp.css">
+    <script src="https://www.cs.unm.edu/~angel/WebGL/7E/Common/initShaders.js" defer></script>
+    <script src="https://www.cs.unm.edu/~angel/WebGL/7E/Common/MV.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/gh/brent-munsell/graphics/models/msphere.js" defer></script>
+    <script src="listeners.js" defer></script>
+    <script src="helpers.js" defer></script>
+    <script src="fp.js" defer></script>
+</head>
+<body>
+    <div id="container">
+        <div class="app">
+            <div class="title">Mini Solar System</div>
+            <div class="setting">
+                <div class="control">
+                  <ul>
+                        <li>Earth settings</li>
+                        <li><span>Orbit speed</span><span id="os_crd">=&nbsp;3</span></li>
+                        <li><input type="range" id="os" min="0" max="10" step="0.1" value="3"></li>
+                        <li><span>Orbit distance</span><span id="od_crd">=&nbsp;1.0</span></li>
+                        <li><input type="range" id="od" min="1.0" max="2.0" step="0.05" value="1.0"></li>
+                        <li><span>Orbit angle</span><span id="oa_crd">=&nbsp;0</span></li>
+                        <li><input type="range" id="oa" min="0" max="45" step="1" value="0"></li>
+                        <li><button id="reset_ss">reset</button></li>
+                  </ul> 
+                  <ul>
+                        <li>Camera settings</li>
+                        <li><span class="red-font">X</span><span id="x_crd">=&nbsp;0.0</span></li>
+                        <li><input type="range" id="xt" min="-1" max="1" step="0.01" value="0.0"></li>
+                        <li><span class="green-font">Y</span><span id="y_crd">=&nbsp;0.0</span></li>
+                        <li><input type="range" id="yt" min="-1" max="1" step="0.01" value="0.0"></li>
+                        <li><span class="blue-font">Z</span><span id="z_crd">=&nbsp;1.0</span></li>
+                        <li><input type="range" id="zt" min="-1" max="1" step="0.01" value="1.0"></li>
+                        <li><span>FoV</span><span id="fovy">=&nbsp;85</span></li>
+                        <li><input type="range" id="fov" min="10" max="100" step="1" value="85"></li>
+                        <li><button id="reset_cl">reset</button></li>
+                  </ul>
+                  
+                </div> <!-- end control -->
+                <div class="rock">
+                    <canvas id="webgl-canvas">
+                        Oops, your browser doesn't support the HTML5 canvas!
+                    </canvas>
+                </div> <!-- end rock -->
+            </div> <!-- end setting -->
+        </div> <!-- end app -->
+    </div> <!-- end containter -->
+</body>  
+<script id="vertex-shader" type="x-shader/x-vertex">
+  uniform vec3 ship; // [ orbit_radius_crd, orbit_speed, orbit_angle_crd ]
+  uniform vec2 props; // [ rot, scale ]
+  uniform float moon; // orbit_speed
+
+  precision mediump float;
+  attribute vec4 vertex;
+  attribute vec4 normal;
+  uniform mat4 V; 
+  uniform mat4 P;
+  uniform vec4 light;
+  uniform vec3 eye;
+  varying vec3 N, L, E;
+
+  // ---------------------------------
+  // Todo: You complete the code
+  // ---------------------------------
+
+  void main() {
+    
+    // earth rotation dynamics
+    float re = ship[0]*props[1];
+    float thetae = ship[1];
+    float phie = ship[2];
+
+    float xe = re * sin(ship[1]) * cos(ship[2]);
+    float ye = re * sin(ship[1]) * sin(ship[2]);
+    float ze = re * cos(ship[1]);
+
+    mat4 T = mat4(
+        1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        xe, ye, ze, 1.0
+    ); 
+    // end earth section
+
+    // moon rotation dynamics
+    float rm = 0.5;
+    float thetam = moon * 3.0; // moon is in radians now
+    float phim = 0.0;
+    
+    float xm = xe + rm * sin(thetam) * cos(phim);
+    float ym = ye + rm * sin(thetam) * sin(phim);
+    float zm = ze + rm * cos(thetam);
+    
+
+    mat4 Tm;
+    mat4 Ry;
+    float s_y = sin(props[0]);
+    float c_y = cos(props[0]);
+
+    if (moon != 0.0)
+    {   Tm = mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            xm, ym, zm, 1.0
+        ); 
+        Ry = mat4(
+            c_y, 0.0,  s_y, 0.0,
+            0.0, 1.0,  0.0, 0.0,
+            -s_y, 0.0,  c_y, 0.0,
+            0.0, 0.0,  0.0, 1.0
+        );
+
+    }
+
+    else {
+        Tm = mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ); 
+        Ry = mat4(
+            c_y, 0.0, -s_y, 0.0,
+            0.0, 1.0,  0.0, 0.0,
+            s_y, 0.0,  c_y, 0.0,
+            0.0, 0.0,  0.0, 1.0
+        );
+    }
+
+    //end moon
+
+    // planet spin about y axis
+    
+
+
+    // end planet spin
+
+    // scale
+    mat4 S = mat4(
+        props[1], 0.0,      0.0,      0.0,
+        0.0,      props[1], 0.0,      0.0,
+        0.0,      0.0,      props[1], 0.0,
+        0.0,      0.0,      0.0,      1.0
+    );
+    // end scale
+
+    mat4 Model = T * Tm * Ry * S;
+    //mat4 Model = T * Ry * S;
+
+    gl_Position = P * V * Model * vertex;
+
+    vec3 v_p = -(P * V * Model * vertex).xyz;
+    vec3 v_l = light.xyz;
+    vec3 v_n = (P * V * Model * normal).xyz;
+
+    L = normalize(v_l - v_p);
+    E = -eye;
+    N = normalize(v_n);
+  
+  }
+
+
+
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+    precision mediump float;
+    precision lowp int;
+
+    // ---------------------------------
+    // Todo: You complete the code
+    // ---------------------------------
+  
+    float shininess = 800.0; 
+    vec4 kd = vec4( 0.9, 0.9, 0.9, 1.0 );
+    vec4 ka = vec4( 0.2, 0.2, 0.2, 1.0 );
+
+
+    // ---------------------------------
+    // P3
+    // ---------------------------------
+
+    uniform vec4 color; 
+    varying vec3 N, L, E;
+    
+    void main() {
+
+        vec3 H = normalize( L + E );
+
+        vec4 diffuse = max( dot(L, N), 0.0 ) * color * kd;
+
+        vec4 ambient = color * ka;
+
+        vec4 specular = pow( max(dot(N,H), 0.0), shininess ) * kd;
+            
+        if ( dot( L, N ) < 0.0 ) {
+            specular = vec4( 0.0, 0.0, 0.0, 1.0 );
+        }
+
+        gl_FragColor = diffuse + ambient + specular;
+
+    }
+  
+</script>
+</html>

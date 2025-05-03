@@ -209,7 +209,7 @@ function createTexture() {
     }
 
     sun_image.crossOrigin = "anonymous";
-    sun_image.src = "sun.jpg";
+    sun_image.src = "https://127.0.0.1:8080/sun.jpg";
 
 
     earth_image = new Image();
@@ -234,7 +234,7 @@ function createTexture() {
 
     earth_image.crossOrigin = "anonymous";
     console.log(url_map["earth"]);
-    earth_image.src = "earth.jpg";
+    earth_image.src = "https://127.0.0.1:8080/earth.jpg";
 
     moon_image = new Image();
 
@@ -257,7 +257,7 @@ function createTexture() {
     }
 
     moon_image.crossOrigin = "anonymous";
-    moon_image.src = "moon.jpg";
+    moon_image.src = "https://127.0.0.1:8080/moon.jpg";
     }
 
 function allocateMemory() {

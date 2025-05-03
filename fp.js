@@ -303,11 +303,12 @@ function draw() {
     srot = (srot + 0.0872665) % 360;
     erot = (erot + 0.174533) % 360;
     orbit_speed = (orbit_speed + orbit_speed_crd) % 360;
-    moon_angle = (moon_angle + 0.5) % 360;
 
+    
+    // draw sun
     webgl_context.uniform2f(uniform_props, rot, 2.5);
     webgl_context.uniform1f( uniform_moon, 0.0);
-    // draw sun
+
     webgl_context.uniform3f( uniform_ship, 0.0, 0.0, 0.0);
     webgl_context.uniform1f( shading_enabled, 1.0);   
     
@@ -315,36 +316,30 @@ function draw() {
     webgl_context.bindTexture( webgl_context.TEXTURE_2D, sun_texture );
     webgl_context.uniform1i( uniform_texture, 0);
     
-    // webgl_context.uniform4f( uniform__color, 0.0, 1.0, 0.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
-    // draw earth
-    webgl_context.uniform2f(uniform_props, srot, 0.3); 
-    webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
-    webgl_context.uniform1f( uniform_moon, 0.0); 
-    
+    // draw earth 
+    webgl_context.uniform2f(uniform_props, srot, 0.5); 
+    webgl_context.uniform1f( uniform_moon, 1.0);
+
+    webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd)); 
+    webgl_context.uniform1f( shading_enabled, 0.0); 
+
     webgl_context.activeTexture( webgl_context.TEXTURE0 + 1);
     webgl_context.bindTexture( webgl_context.TEXTURE_2D, earth_texture );
     webgl_context.uniform1i( uniform_texture, 1);
 
-    webgl_context.uniform2f(uniform_props, srot, 0.5); 
-    webgl_context.uniform1f( uniform_moon, 0.0);
-    webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd)); 
-    webgl_context.uniform1f( shading_enabled, 0.0); 
-    //moon = atan(tan(ship[1]) * cos(ship[2])) / 3.0
-    webgl_context.uniform4f( uniform__color, 0.0, 0.84, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
 
     // draw moon
     webgl_context.uniform2f(uniform_props, erot, 0.25); 
-    webgl_context.uniform1f(uniform_moon, radians(orbit_speed_crd));
+    webgl_context.uniform1f(uniform_moon, 2.0);
     webgl_context.uniform3f(uniform_ship, orbit_radius_crd, radians(orbit_speed), radians(orbit_angle_crd));
     
     webgl_context.activeTexture( webgl_context.TEXTURE0 + 2);
     webgl_context.bindTexture( webgl_context.TEXTURE_2D, moon_texture );
     webgl_context.uniform1i( uniform_texture, 2);
 
-    webgl_context.uniform4f( uniform__color, 1.0, 1.0, 1.0, 1.0 );
     webgl_context.drawArrays( webgl_context.TRIANGLES, 0, vertex_data.length );
    
 }

@@ -72,7 +72,7 @@
   void main() {
     
     // earth rotation dynamics
-    float re = ship[0]*props[1];
+    float re = ship[0]*0.5;
     float thetae = ship[1];
     float phie = ship[2];
 
@@ -80,42 +80,48 @@
     float ye = re * sin(ship[1]) * sin(ship[2]);
     float ze = re * cos(ship[1]);
 
-    mat4 T = mat4(
-        1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        xe, ye, ze, 1.0
-    ); 
+    mat4 T;
+    if (moon == 1.0) {
+        T = mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            xe, ye, ze, 1.0
+        ); 
+    } else {
+        T = mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ); 
+    }
+    
     // end earth section
 
     // moon rotation dynamics
-    float rm = 0.5;
-    float thetam = moon * 3.0; // moon is in radians now
+    float rm = 0.5*0.25;
+    float thetam = ship[1] * 3.0; // moon is in radians now
     float phim = 0.0;
     
-    float xm = xe + rm * sin(thetam) * cos(phim);
-    float ym = ye + rm * sin(thetam) * sin(phim);
-    float zm = ze + rm * cos(thetam);
-    
+    float xm = xe + (rm * sin(thetam));
+    float ym = ye;
+    float zm = ze + (rm * cos(thetam)); 
+
 
     mat4 Tm;
     mat4 Ry;
     float s_y = sin(props[0]);
     float c_y = cos(props[0]);
 
-    if (moon != 0.0)
+    if (moon == 2.0)
     {   Tm = mat4(
             1.0, 0.0, 0.0, 0.0,
             0.0, 1.0, 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
             xm, ym, zm, 1.0
         ); 
-        Ry = mat4(
-            c_y, 0.0,  s_y, 0.0,
-            0.0, 1.0,  0.0, 0.0,
-            -s_y, 0.0,  c_y, 0.0,
-            0.0, 0.0,  0.0, 1.0
-        );
+        
 
     }
 
@@ -126,18 +132,18 @@
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0
         ); 
-        Ry = mat4(
-            c_y, 0.0, -s_y, 0.0,
-            0.0, 1.0,  0.0, 0.0,
-            s_y, 0.0,  c_y, 0.0,
-            0.0, 0.0,  0.0, 1.0
-        );
+        
     }
 
     //end moon
 
     // planet spin about y axis
-    
+    Ry = mat4(
+        c_y, 0.0,  s_y, 0.0,
+        0.0, 1.0,  0.0, 0.0,
+        -s_y, 0.0,  c_y, 0.0,
+        0.0, 0.0,  0.0, 1.0
+    );
 
 
     // end planet spin
@@ -152,7 +158,6 @@
     // end scale
 
     mat4 Model = T * Tm * Ry * S;
-    //mat4 Model = T * Ry * S;
 
     gl_Position = P * V * Model * vertex;
 
